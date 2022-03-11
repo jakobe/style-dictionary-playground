@@ -1,0 +1,21 @@
+html,
+body {
+  margin: 0;
+  padding: 0 1rem;
+  font-family: "Source Sans Pro", sans-serif;
+}
+
+#template-container {
+  width: 100%;
+  background-color: white;
+  overflow: hidden;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+  border-radius: var(--sd-component-container-border-radius-mobile);
+}
+
+@media (min-width: 600px) {
+  #template-container {
+    border-radius: var(--sd-component-container-border-radius-desktop);
+  }
+}

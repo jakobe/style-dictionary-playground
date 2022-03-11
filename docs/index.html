@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Amazon's Style Dictionary tool, running in the browser with an interactive playground to experiment."
+    />
+    <meta name="author" content="‹div›RIOTS" />
+    <meta
+      name="keywords"
+      content="style-dictionary, style, dictionary, design, tokens, designtokens, designsystems, design"
+    />
+    <meta name="theme-color" content="#11aea7" />
+    <meta
+      name="twitter:title"
+      content="Style Dictionary Playground | by ‹div›RIOTS"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@backlight_dev" />
+    <meta name="twitter:creator" content="@divRIOTS" />
+    <meta
+      name="twitter:image"
+      content="https://style-dictionary-play.dev/assets/meta-image.jpg"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en-US" />
+    <meta property="og:site" content="https://style-dictionary-play.dev/" />
+    <meta property="og:site_name" content="Style-Dictionary-Play.dev" />
+    <meta
+      property="og:title"
+      content="Style Dictionary Playground | by ‹div›RIOTS"
+    />
+    <meta
+      property="og:description"
+      content="Amazon's Style Dictionary tool, running in the browser with an interactive playground to experiment."
+    />
+    <meta
+      property="og:image"
+      content="https://style-dictionary-play.dev/assets/meta-image.jpg"
+    />
+    <meta
+      property="og:image:alt"
+      content="Display picture of style-dictionary-play"
+    />
+    <title>Style Dictionary Playground</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://unpkg.com/wasm-flate@0.1.11-alpha/dist/bootstrap.js"></script>
+    <script src="https://unpkg.com/json5@^2.0.0/dist/index.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" src="./index.js"></script>
+  </head>
+  <!-- hack to make monaco layout behave -->
+  <body>
+    <!-- <header>
+      <sdp-nav></sdp-nav>
+    </header> -->
+    <div class="intro">
+      <h1>
+        Play with
+        <a
+          target="_blank"
+          rel="noopener"
+          href="https://amzn.github.io/style-dictionary"
+          >Style Dictionary</a
+        >
+        & Klik Foundation
+      </h1>
+      <p>
+        Once you save any file, the URL encodes your progress so it's easy to
+        share!
+      </p>
+    </div>
+    <div class="playground-container">
+      <div id="jsSwitchContainer" class="switch-btn-container">
+        <button id="jsSwitchBtn" class="js-switch-btn">Switch to JS</button>
+        <button
+          id="jsSwitchClose"
+          aria-label="Hide these buttons"
+          class="codicon codicon-chrome-close"
+        ></button>
+      </div>
+      <file-tree></file-tree>
+      <div style="height: 100%" id="monaco-container"></div>
+    </div>
+    <!-- <p class="made-for">
+      Made for our Design System platform:
+      <a href="https://backlight.dev">Backlight.dev</a>. Read the
+      <a href="https://backlight.dev/docs/style-dictionary">integration docs</a
+      >.
+    </p> -->
+    <div class="component-container">
+      <!-- <h2>Card Component example</h2>
+      <p>
+        Style Dictionary can output to lots of different formats, for example
+        Web or iOS.
+      </p>
+      <p>
+        Below is a card component which is based on the tokens. Try changing the
+        card tokens!
+      </p>
+      <p>
+        Note: if you're viewing this on small viewport below 740px, the frame
+        below will be set to mobile.
+      </p> -->
+      <div id="frame-popout">
+        <div class="viewport-btn-container">
+          <button class="frame-btn" id="viewport-btn">View Mobile</button>
+          <button class="frame-btn" id="popout-btn">Pop-out</button>
+        </div>
+        <iframe
+          id="component-frame"
+          src="./component-builder/component-builder.html"
+        ></iframe>
+      </div>
+    </div>
+    <!-- <div class="explainer">
+      <h2>Features</h2>
+      <ul>
+        <li>
+          Allows tokens or config as JS file for more advanced use cases like
+          custom formats / transforms
+        </li>
+        <li>
+          Supports relative imports between JS files, to reuse token partials
+        </li>
+        <li>
+          Supports using StyleDictionary object by importing:
+          <code
+            ><span style="color: #569cd6">import</span> StyleDictionary
+            <span style="color: #569cd6">from</span>
+            <span style="color: #ce9178">'style-dictionary'</span>;</code
+          >
+          in the config. This is useful if you need for example formatHelpers
+          (e.g.
+          <code
+            >StyleDictionary.formatHelpers.<span style="color: #569cd6"
+              >fileHeader</span
+            >(file)</code
+          >)
+        </li>
+        <li>
+          FileTree supports keyboard navigation. F2 to edit currently focused
+          file or folder.
+        </li>
+        <li>
+          Can download all files in your current playground as a ZIP with the
+          download button at the bottom left of the editor.
+        </li>
+        <li>
+          Supports dispatching a MessageEvent using postMessage
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-tokens-request'</span> }</code
+          >,
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-dictionary-request'</span> }</code
+          >
+          or
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-input-files-request'</span> }</code
+          >
+          which will dispatch a MessageEvent to the source of the request with
+          either the tokens, the current dictionary instance, or all of the
+          input files and its contents. Useful for third-party integrations
+          through iframes. Note that for postMessage cloning, dictionary
+          instance is JSON.stringified as it contains functions.
+        </li>
+      </ul>
+      <h2>Third party integration</h2>
+      <p>
+        You can load this app in an iframe with a project ID in the URL and then
+        use
+        <a
+          href="https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage"
+          >postMessage</a
+        >
+        to request all kinds of useful data from the style-dictionary-play
+        instance, which the app will then send back with postMessage. Use '*'
+        for origin.
+      </p>
+      <ul>
+        <li>
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-tokens-request'</span> }</code
+          >
+          for just the rudimentary tokens object
+        </li>
+        <li>
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-dictionary-request'</span> }</code
+          >
+          for just the rudimentary dictionary object. This object will not
+          contain any methods because those cannot be cloned and sent over
+          postMessage.
+        </li>
+        <li>
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-enriched-tokens-request'</span>
+            }</code
+          >
+          for the full tokens and allTokens (flattened version of tokens) object
+          after running transforms and resolutions based on a specific platform.
+          This will give much more metadata about the tokens. You have to pass
+          the <code>platform</code> as a string property in the request message.
+          You can find which platforms are used by first sending an
+          sd-dictionary-request which contains the configured platforms.
+        </li>
+        <li>
+          <code
+            >{ type:
+            <span style="color: #ce9178">'sd-input-files-request'</span> }</code
+          >
+          for all input files and their contents as strings.
+        </li>
+      </ul>
+      <h2>How it works</h2>
+      <p>
+        For a full explanation,
+        <a
+          href="https://backlight.dev/blog/nodejs-in-browser"
+          target="_blank"
+          rel="noopener"
+          >check out the blog we wrote about it</a
+        >.
+      </p>
+      <p>
+        We use a
+        <a
+          target="_blank"
+          rel="noopener"
+          href="https://www.npmjs.com/package/browser-style-dictionary"
+          >browser patch</a
+        >
+        of
+        <a
+          target="_blank"
+          rel="noopener"
+          href="https://amzn.github.io/style-dictionary"
+          >style-dictionary</a
+        >
+        in combination with
+        <a target="_blank" rel="noopener" href="https://browserify.org/"
+          >browserify</a
+        >
+        and a shim for file-system (e.g. <code>memfs</code> or
+        <code>browserify-fs</code>) to make the tool work in the browser.
+      </p>
+      <p>
+        We then use monaco-editor and some file-tree utilities to make the
+        playground editor work with it.
+      </p>
+      <p>
+        The input files are encoded in the URL when you save files, making
+        playground snippets easy to share with others!
+      </p>
+    </div> -->
+    <!-- <footer>
+      <a
+        class="divriots"
+        href="https://divriots.com"
+        target="_blank"
+        rel="noopener"
+      >
+        by
+        <img alt="divriots logo" src="./assets/divriots.svg" />
+      </a>
+      <a href="https://www.netlify.com">
+        <img
+          src="https://www.netlify.com/img/global/badges/netlify-color-accent.svg"
+          alt="Deploys by Netlify"
+        />
+      </a>
+      <div class="connect">
+        <p>Connect</p>
+        <div class="socials">
+          <a
+            target="_blank"
+            rel="noopener"
+            href="https://discord.gg/XkQxSU9"
+            aria-label="discord"
+            ><img alt="discord logo" src="./assets/discord.svg"
+          /></a>
+          <a
+            target="_blank"
+            rel="noopener"
+            href="https://twitter.com/divriots"
+            aria-label="div riots twitter"
+            ><img alt="twitter logo" src="./assets/twitter.svg"
+          /></a>
+        </div>
+      </div>
+      <div class="contact">
+        <p>Contact</p>
+        <p>hello@divriots.com</p>
+      </div>
+    </footer> -->
+  </body>
+</html>
