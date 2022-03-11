@@ -97,8 +97,6 @@ export async function rerunStyleDictionaryIfSourceChanged(
   const inputFiles = await getInputFiles();
   // If no inputFiles, run was error so can't send something useful to analytics atm or encode contents in url
   if (inputFiles.length > 0) {
-    // We use fathom for analytics, here we track dictionary runs
-    window.fathom.trackGoal("XBWJBW1W", 0);
     const encoded = await encodeContents(inputFiles);
     window.location.href = `${window.location.origin}/#project=${encoded}`;
   }
