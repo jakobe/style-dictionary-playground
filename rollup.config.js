@@ -3,6 +3,7 @@ import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import inject from "@rollup/plugin-inject";
+import html from "rollup-plugin-html";
 import * as path from "path";
 
 const filesToCopy = [
@@ -68,6 +69,9 @@ const plugins = [
       return code.replace(/glob_1\.Glob;/g, "");
     },
   },
+  html({
+    include: "**/*.html",
+  }),
 ];
 
 export default [
