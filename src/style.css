@@ -87,7 +87,7 @@ h2 {
 }
 
 .playground-container {
-  height: 75vh;
+  height: 50vh;
   display: flex;
   border-radius: var(--border-radius-editor);
   box-shadow: 0 5px 6px rgb(0 0 0 / 50%);
@@ -148,10 +148,10 @@ file-tree {
 }
 
 #frame-popout {
-  position: fixed;
+  /* position: fixed; */
   right: 0;
   top: 50%;
-  transform: translateY(-50%);
+  /* transform: translateY(-50%); */
 }
 
 .viewport-btn-container {
@@ -171,7 +171,7 @@ file-tree {
   background-color: #5bb8ae;
 }
 
-#card-frame {
+#component-frame {
   display: block;
   margin: 0 auto;
   height: 450px;

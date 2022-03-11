@@ -1,0 +1,22 @@
+{
+  "radii": {
+    "none": {
+      "value": "0"
+    },
+    "sm": {
+      "value": "8"
+    }
+  },
+  "component-container": {
+    "border": {
+      "radius": {
+        "mobile": {
+          "value": "{radii.none}"
+        },
+        "desktop": {
+          "value": "{radii.sm}"
+        }
+      }
+    }
+  }
+}

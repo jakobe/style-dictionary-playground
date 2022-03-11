@@ -4,6 +4,7 @@ import path from "path";
 import glob from "glob";
 import { configPaths, changeLang, getContents } from "./index.js";
 import {
+  exportHTMLToComponentFrame,
   styleDictionaryInstance,
   styleDictionaryInstanceSet,
   rerunStyleDictionaryIfSourceChanged,
@@ -11,6 +12,11 @@ import {
 import createDictionary from "browser-style-dictionary/lib/utils/createDictionary.js";
 import mkdirRecursive from "./mkdirRecursive.js";
 import { ensureMonacoIsLoaded, editor } from "../browser/monaco.js";
+
+import colorTokens from "../tokens/global/color.json";
+import radiiTokens from "../tokens/global/radii.json";
+import componentTokens from "../tokens/components.json";
+import htmlTemplate from "../markup/markup.html";
 
 const asyncGlob = util.promisify(glob);
 const extensionMap = {
@@ -29,6 +35,8 @@ async function currentFileContentChanged() {
 function getSelectedFileBtn() {
   return fileTreeEl.checkedFileBtn;
 }
+
+// http://localhost:8000/#project=rVZbb5swFP4riL20VQqrsk5b1fWlD3vd2zSNajLgEBNsI/uQJYry32cbSGxzSaTVUbicm8/5vmObQ5ghkcf6EgHfYCajUnIWPoWHhAVBYtRJ+BSYVy1IucixsERaKFBOGukItZjylFTYE2vFFlWNkSfhQfuSiHGGj0l4Njsu7Eg5lhvg9VWhJHUD9Y/dQx84CddY2bPCqyXjFReDUuxpjEW04gyiFEk77cEUgHfwP/EBCyBI7Efm0Dd1OYaLNmSsc5kg0ZtSsahsvbwKgfaDtCpSrGEe9Q+vZkxzR7FqDnohyFczZhoAic2FEA9mjFO/sHoV53PoG/WYXyEwZnOencFFnlpir+NJ23o8Dagbbx/TDaqY43g1EmecKVD314Yy1U0E67v0+lhoH2lGL7U1rdW2wEDGemXzcdCMygGtRgKkhxq1+0eDmG0KwRuWvw4wt5IGgZhU4bBmwWS2aP3X2FsYjtvH6FFg6nr8JTmspx2Wy4GHmXzFBZ3NrkKAf93cP9S720BwUG83nx5zXNy6wdpt++dsEvUuWHZ/9TzmPwvWVLdoNhOmf0OC2YoUHp+SNyIzIX/3k9zdxXc2+W3cty61WkGgYZJOYpn0W+CE53dFfN3mbKysTq4FXpFdq5O5o0obUuU/UItf9xor/9ixWqkDT1rJ6+HtWeosA8IQEM7aUH+2SBCUKsfIzaffAwRFcMo3PlmPbnVv/hFUXoNDKS/XWr5DqedKy/lCS7RFMhOkhhjLz7OVWg1lPgBmDkKjd9pEf3d4+NhLop/4DKek0+Zf+lXjZgWY6h7F0RpopZJ5zsk2yCok5bdu+7pPGwCN0Yt2c/TtxvXyHCuh0vb38PgP
 
 export async function createInputFiles() {
   const urlSplit = window.location.href.split("#project=");
@@ -50,131 +58,63 @@ export async function createInputFiles() {
       })
     );
   } else {
-    fs.mkdirSync(`color`);
-    fs.mkdirSync(`card`);
-    fs.mkdirSync(`radii`);
+    fs.mkdirSync(`global`);
+    fs.mkdirSync(`components`);
 
     fs.writeFileSync(
-      // take the .json by default
-      configPaths.find(pa => pa.endsWith('.json')),
-      JSON.stringify(
+      // take the .js by default
+      configPaths.find((pa) => pa.endsWith(".js")),
+      `export default {
+  source: ["**/*.tokens.json"],
+  platforms: {
+    cssVars: {
+      transformGroup: "css",
+      prefix: "sd",
+      buildPath: "build/css/",
+      files: [
         {
-          source: ["**/*.tokens.json"],
-          platforms: {
-            css: {
-              transformGroup: "css",
-              prefix: "sd",
-              buildPath: "build/css/",
-              files: [
-                {
-                  destination: "_variables.css",
-                  format: "css/variables",
-                },
-              ],
-            },
-            js: {
-              transformGroup: "js",
-              buildPath: "build/js/",
-              files: [
-                {
-                  destination: "variables.js",
-                  format: "javascript/es6",
-                },
-              ],
-            },
-          },
+          destination: "_variables.css",
+          format: "css/variables",
+          filter: function(token) {
+            return token.filePath != "components/components.tokens.json";
+          }
         },
-        null,
-        2
-      )
+      ],
+    },
+    css: {
+      transforms: ['attribute/cti', 'name/cti/pipeKebab', 'size/rem'],
+      prefix: "sd",
+      buildPath: "build/css/",
+      files: [
+        {
+          destination: "_components.css",
+          format: "css/component",
+          filter: {
+            filePath: "components/components.tokens.json"
+          }
+        },
+      ],
+    },
+  },
+};
+      `
     );
 
     fs.writeFileSync(
-      path.join(`color`, "base.tokens.json"),
-      JSON.stringify(
-        {
-          color: {
-            base: {
-              gray: {
-                light: { value: "#CCCCCC" },
-                medium: { value: "#999999" },
-                dark: { value: "#111111" },
-              },
-              red: { value: "#FF0000" },
-              green: { value: "#00FF00" },
-            },
-          },
-        },
-        null,
-        2
-      )
+      path.join(`components`, "components.tokens.json"),
+      JSON.stringify(componentTokens, null, 2)
+    );
+
+    fs.writeFileSync(path.join(`components`, "markup.html"), htmlTemplate);
+
+    fs.writeFileSync(
+      path.join(`global`, "color.tokens.json"),
+      JSON.stringify(colorTokens, null, 2)
     );
 
     fs.writeFileSync(
-      path.join(`color`, "font.tokens.json"),
-      JSON.stringify(
-        {
-          color: {
-            font: {
-              base: { value: "{color.base.red}" },
-              secondary: { value: "{color.base.green}" },
-              tertiary: { value: "{color.base.gray.dark}" },
-            },
-          },
-        },
-        null,
-        2
-      )
-    );
-
-    fs.writeFileSync(
-      path.join(`card`, "card.tokens.json"),
-      JSON.stringify(
-        {
-          card: {
-            border: {
-              radius: {
-                mobile: {
-                  value: "{radii.none}",
-                },
-                desktop: {
-                  value: "{radii.sm}",
-                },
-              },
-            },
-            heading: {
-              color: {
-                value: "{color.font.base}",
-              },
-            },
-            text: {
-              color: {
-                value: "{color.font.tertiary}",
-              },
-            },
-          },
-        },
-        null,
-        2
-      )
-    );
-
-    fs.writeFileSync(
-      path.join(`radii`, "base.tokens.json"),
-      JSON.stringify(
-        {
-          radii: {
-            none: {
-              value: "0",
-            },
-            sm: {
-              value: "8px",
-            },
-          },
-        },
-        null,
-        2
-      )
+      path.join(`global`, "radii.tokens.json"),
+      JSON.stringify(radiiTokens, null, 2)
     );
   }
 }
@@ -269,6 +209,10 @@ export async function saveCurrentFile() {
     });
   });
   selectedFileBtn.removeAttribute("unsaved");
+
+  if (selectedFile === "components/markup.html") {
+    await exportHTMLToComponentFrame();
+  }
 
   await rerunStyleDictionaryIfSourceChanged(`/${selectedFile}`);
 }

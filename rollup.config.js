@@ -12,6 +12,7 @@ const filesToCopy = [
   path.resolve("src", "style.css"),
   path.resolve("src", "assets"),
   path.resolve("src", "card"),
+  path.resolve("src", "component-builder"),
 ];
 
 const EMPTY_MODULE_ID = "$empty$";

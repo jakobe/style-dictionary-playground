@@ -5,6 +5,16 @@ import * as rollup from "rollup";
 import StyleDictionary from "browser-style-dictionary/browser.js";
 import { repopulateFileTree, getInputFiles } from "./file-tree-utils.js";
 import { configPaths, encodeContents } from "./index.js";
+import { customTransforms } from "./custom-transforms.js";
+import { customFormats } from "./custom-formats.js";
+
+// Add additional StyleDictionary transforms, formatters etc:
+customTransforms.forEach((transform) => {
+  StyleDictionary.registerTransform(transform);
+});
+customFormats.forEach((format) => {
+  StyleDictionary.registerFormat(format);
+});
 
 export let styleDictionaryInstance;
 let sdInstanceSetResolve;
@@ -32,34 +42,39 @@ async function cleanPlatformOutputDirs() {
   );
 }
 
-// If we don't have the CSS props or card tokens
-// there's no use in showing the card component demo
+// If we don't have the CSS props or component container tokens
+// there's no use in showing the component container component demo
 function getCSSText(filePath) {
   if (!fs.existsSync(filePath)) {
-    document.querySelector(".card-container").style.display = "none";
+    document.querySelector(".component-container").style.display = "none";
     return "";
   }
   const cssProps = fs.readFileSync(filePath, "utf-8");
-  if (cssProps.match(/--sd-card-/g)) {
-    document.querySelector(".card-container").style.display = "block";
-  } else {
-    document.querySelector(".card-container").style.display = "none";
+  if (filePath === "build/css/_variables.css") {
+    if (cssProps.match(/--sd-component-container-/g)) {
+      document.querySelector(".component-container").style.display = "block";
+    } else {
+      document.querySelector(".component-container").style.display = "none";
+    }
   }
   return cssProps;
 }
 
-function exportCSSPropsToCardFrame() {
-  const cssProps = getCSSText("build/css/_variables.css");
-  if (!cssProps) {
+function exportCSSPropsToComponentFrame() {
+  const cssVars = getCSSText("build/css/_variables.css");
+  const componentsCss = getCSSText("build/css/_components.css");
+  if (!cssVars || !componentsCss) {
     return;
   }
 
-  const cardFrame = document.getElementById("card-frame");
+  const cssProps = [cssVars, componentsCss].join("\n");
+
+  const componentFrame = document.getElementById("component-frame");
   // if iframe is not fully loaded we can't inject the CSS sheet yet
-  if (cardFrame.contentWindow.document.readyState !== "complete") {
-    cardFrame.contentWindow.addEventListener("load", () => {
-      cardFrame.contentWindow.requestAnimationFrame(() => {
-        cardFrame?.contentWindow.insertCSS(cssProps);
+  if (componentFrame.contentWindow.document.readyState !== "complete") {
+    componentFrame.contentWindow.addEventListener("load", () => {
+      componentFrame.contentWindow.requestAnimationFrame(() => {
+        componentFrame?.contentWindow.insertCSS(cssProps);
       });
     });
     return;
@@ -67,7 +82,7 @@ function exportCSSPropsToCardFrame() {
 
   const insertCSS = async (cssProps) => {
     try {
-      cardFrame?.contentWindow.insertCSS(cssProps);
+      componentFrame?.contentWindow.insertCSS(cssProps);
     } catch (e) {
       // If insertCSS is not available on iframe window yet, try again after 100ms
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -75,6 +90,26 @@ function exportCSSPropsToCardFrame() {
     }
   };
   insertCSS(cssProps);
+}
+
+export async function exportHTMLToComponentFrame() {
+  const templateMarkup = await new Promise((resolve) => {
+    fs.readFile("components/markup.html", "utf-8", (err, data) => {
+      resolve(data);
+    });
+  });
+  const componentFrame = document.getElementById("component-frame");
+
+  const insertHTML = async (templateMarkup) => {
+    try {
+      componentFrame?.contentWindow.insertHTML(templateMarkup);
+    } catch (e) {
+      // If insertCSS is not available on iframe window yet, try again after 100ms
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      insertHTML(templateMarkup);
+    }
+  };
+  insertHTML(templateMarkup);
 }
 
 export async function rerunStyleDictionaryIfSourceChanged(
@@ -215,7 +250,7 @@ export default async function runStyleDictionary() {
     styleDictionaryInstance = newStyleDictionary;
     sdInstanceSetResolve();
     await newStyleDictionary.buildAllPlatforms();
-    exportCSSPropsToCardFrame();
+    exportCSSPropsToComponentFrame();
   } catch (e) {
     console.error(`Style Dictionary error: ${e.stack}`);
   } finally {

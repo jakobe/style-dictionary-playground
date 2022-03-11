@@ -10,6 +10,7 @@ import {
   openAllFolders,
 } from "./file-tree-utils.js";
 import runStyleDictionary, {
+  exportHTMLToComponentFrame,
   findUsedConfigPath,
   rerunStyleDictionaryIfSourceChanged,
 } from "./run-style-dictionary.js";
@@ -91,6 +92,7 @@ function switchClose(ev) {
   });
   await createInputFiles();
   await runStyleDictionary();
+  await exportHTMLToComponentFrame();
   await openAllFolders();
   await setupFileChangeHandlers();
   window.addEventListener("resize", async () => {
