@@ -25782,9 +25782,7 @@ const customTransforms = [sizeRem, nameCtiPipeKebab];
 const componentToCss = {
   name: "css/component",
   formatter: ({ dictionary }) => {
-    const [rootKey, rootValue] = Object.entries(dictionary.tokens)[0];
-    const hostComponentSelector = `[component=${rootKey}]`;
-    const baseSelector = `${hostComponentSelector}[part="base"]`;
+    const baseSelector = `[part="base"]`;
     const indentWidth = "  ";
 
     const getSelector = (selector, prefix) => {
@@ -25831,7 +25829,7 @@ ${indent}}`;
 
       const partsStyleDeclarations = Object.entries(parts).map(
         ([part, partsStyles]) => {
-          const partSelector = `${hostComponentSelector} [part="${part}"]`;
+          const partSelector = `[part="${part}"]`;
           const selector = getSelector(partSelector, selectorPrefix);
           return renderCssRuleset(partsStyles, depth, selector);
         }
@@ -25878,7 +25876,8 @@ ${indent}}`;
       return ruleSet;
     };
 
-    const cssRules = renderProps(rootValue);
+    const root = Object.values(dictionary.tokens)[0];
+    const cssRules = renderProps(root);
 
     return cssRules;
   },
@@ -25945,29 +25944,29 @@ function exportCSSPropsToComponentFrame() {
     return;
   }
 
-  const cssProps = [cssVars, componentsCss].join("\n");
-
   const componentFrame = document.getElementById("component-frame");
   // if iframe is not fully loaded we can't inject the CSS sheet yet
   if (componentFrame.contentWindow.document.readyState !== "complete") {
     componentFrame.contentWindow.addEventListener("load", () => {
       componentFrame.contentWindow.requestAnimationFrame(() => {
-        componentFrame?.contentWindow.insertCSS(cssProps);
+        componentFrame?.contentWindow.insertCSS(cssVars);
+        componentFrame?.contentWindow.insertCSS(componentsCss, "shadowroot");
       });
     });
     return;
   }
 
-  const insertCSS = async (cssProps) => {
+  const insertCSS = async () => {
     try {
-      componentFrame?.contentWindow.insertCSS(cssProps);
+      componentFrame?.contentWindow.insertCSS(cssVars);
+      componentFrame?.contentWindow.insertCSS(componentsCss, "shadowroot");
     } catch (e) {
       // If insertCSS is not available on iframe window yet, try again after 100ms
       await new Promise((resolve) => setTimeout(resolve, 100));
-      insertCSS(cssProps);
+      insertCSS();
     }
   };
-  insertCSS(cssProps);
+  insertCSS();
 }
 
 async function exportHTMLToComponentFrame() {

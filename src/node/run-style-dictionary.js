@@ -67,29 +67,29 @@ function exportCSSPropsToComponentFrame() {
     return;
   }
 
-  const cssProps = [cssVars, componentsCss].join("\n");
-
   const componentFrame = document.getElementById("component-frame");
   // if iframe is not fully loaded we can't inject the CSS sheet yet
   if (componentFrame.contentWindow.document.readyState !== "complete") {
     componentFrame.contentWindow.addEventListener("load", () => {
       componentFrame.contentWindow.requestAnimationFrame(() => {
-        componentFrame?.contentWindow.insertCSS(cssProps);
+        componentFrame?.contentWindow.insertCSS(cssVars);
+        componentFrame?.contentWindow.insertCSS(componentsCss, "shadowroot");
       });
     });
     return;
   }
 
-  const insertCSS = async (cssProps) => {
+  const insertCSS = async () => {
     try {
-      componentFrame?.contentWindow.insertCSS(cssProps);
+      componentFrame?.contentWindow.insertCSS(cssVars);
+      componentFrame?.contentWindow.insertCSS(componentsCss, "shadowroot");
     } catch (e) {
       // If insertCSS is not available on iframe window yet, try again after 100ms
       await new Promise((resolve) => setTimeout(resolve, 100));
-      insertCSS(cssProps);
+      insertCSS();
     }
   };
-  insertCSS(cssProps);
+  insertCSS();
 }
 
 export async function exportHTMLToComponentFrame() {

@@ -1,9 +1,7 @@
 const componentToCss = {
   name: "css/component",
   formatter: ({ dictionary }) => {
-    const [rootKey, rootValue] = Object.entries(dictionary.tokens)[0];
-    const hostComponentSelector = `[component=${rootKey}]`;
-    const baseSelector = `${hostComponentSelector}[part="base"]`;
+    const baseSelector = `[part="base"]`;
     const indentWidth = "  ";
 
     const getSelector = (selector, prefix) => {
@@ -50,7 +48,7 @@ ${indent}}`;
 
       const partsStyleDeclarations = Object.entries(parts).map(
         ([part, partsStyles]) => {
-          const partSelector = `${hostComponentSelector} [part="${part}"]`;
+          const partSelector = `[part="${part}"]`;
           const selector = getSelector(partSelector, selectorPrefix);
           return renderCssRuleset(partsStyles, depth, selector);
         }
@@ -97,7 +95,8 @@ ${indent}}`;
       return ruleSet;
     };
 
-    const cssRules = renderProps(rootValue);
+    const root = Object.values(dictionary.tokens)[0];
+    const cssRules = renderProps(root);
 
     return cssRules;
   },
